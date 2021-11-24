@@ -317,8 +317,12 @@ if __name__ == '__main__':
     # validate_ekf_localization()
 
     ## Subcomponent validation
+    print("Testing Subproblems")
     validate_localization_transition_model()
     print("Passed Problem 1 Question 2")
+    validate_ekf_transition_update()
+    print("Passed Problem 1 Question 3")
+
     # validate_localization_compute_predicted_measurements()
     # validate_localization_compute_innovations()
 
