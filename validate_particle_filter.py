@@ -259,6 +259,7 @@ if __name__ == '__main__':
     ## Subcomponent validation
     validate_transition_model()
     print("Passed Problem 3 Part 1")
-    # validate_predicted_measurements()
+    validate_predicted_measurements()
+    print("Passed Problem 3 Part 2 - 1 Predicted Measurement")
     # validate_compute_innovations()
     # validate_resample()

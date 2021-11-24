@@ -241,8 +241,8 @@ class MonteCarloLocalization(ParticleFilter):
         #       particles. You may find scipy.stats.multivariate_normal.pdf()
         #       useful.
         # Hint: You'll need to call self.measurement_model()
-
-
+        vs, Q = self. measurement_model(z_raw, Q_raw)
+        ws = scipy.stats.multivariate_normal(vs, mean=None, cov=Q)
         ########## Code ends here ##########
 
         self.resample(xs, ws)
@@ -264,10 +264,9 @@ class MonteCarloLocalization(ParticleFilter):
         vs = self.compute_innovations(z_raw, np.array(Q_raw))
 
         ########## Code starts here ##########
-        # TODO: Compute Q.
+        # DONE: Compute Q.
         # Hint: You might find scipy.linalg.block_diag() useful
-
-
+        Q = scipy.linalg.block_diag(*Q_raw)
         ########## Code ends here ##########
 
         return vs, Q
@@ -314,6 +313,8 @@ class MonteCarloLocalization(ParticleFilter):
         #       Overall, that's 100x!
         # Hint: For the faster solution, you might find np.expand_dims(), 
         #       np.linalg.solve(), np.meshgrid() useful.
+        I = Q_raw.shape[0]
+        J = self.map_lines.shape[1]
 
 
         ########## Code ends here ##########
@@ -333,7 +334,7 @@ class MonteCarloLocalization(ParticleFilter):
             hs: np.array[M,2,J] - J line parameters in the scanner (camera) frame for M particles.
         """
         ########## Code starts here ##########
-        # TODO: Compute hs.
+        # DONE: Compute hs.
         # Hint: We don't need Jacobians for particle filtering.
         # Hint: Simple solutions: Using for loop, for each particle, for each 
         #       map line, transform to scanner frmae using tb.transform_line_to_scanner_frame()
@@ -344,8 +345,20 @@ class MonteCarloLocalization(ParticleFilter):
         #       results in a ~10x speedup.
         # Hint: For the faster solution, it does not call tb.transform_line_to_scanner_frame()
         #       or tb.normalize_line_parameters(), but reimplement these steps vectorized.
+        alpha, r = self.map_lines[0, :], self.map_lines[1, :]   # column vectors (J, )
+        x_base, y_base, th_base = np.expand_dims(self.xs[:, 0], -1), \
+                                  np.expand_dims(self.xs[:, 1], -1), \
+                                  np.expand_dims(self.xs[:, 2], -1)     # (M, 1)
+        x_camera_base, y_camera_base, th_camera_base = self.tf_base_to_camera   # float
+        # Rotation matrix to get camera coordinates in
+        x_camera = x_camera_base + np.cos(th_base) * x_camera_base - np.sin(th_base) * y_camera_base    # (M, 1)
+        y_camera = y_camera_base + np.sin(th_base) * x_camera_base + np.cos(th_base) * y_camera_base    # (M, 1)
 
+        alpha_c = (alpha - th_base - th_camera_base + np.pi) % (2 * np.pi) - np.pi  # (M, J)
+        r_c = r - x_camera * np.cos(alpha) - y_camera * np.sin(alpha)   # (M, J)
 
+        hs = np.hstack([alpha_c, r_c])  # (M, 2J)
+        hs = np.reshape(hs, (self.M, 2, -1))    # (M, 2, J)
         ########## Code ends here ##########
 
         return hs
