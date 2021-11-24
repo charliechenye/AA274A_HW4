@@ -253,11 +253,12 @@ def validate_mc_localization(show_plot=True):
 
 
 if __name__ == '__main__':
-    ### PROBLEM 1
-    validate_mc_localization()
+    ### PROBLEM 3
+    # validate_mc_localization()
 
     ## Subcomponent validation
     validate_transition_model()
-    validate_predicted_measurements()
-    validate_compute_innovations()
-    validate_resample()
+    print("Passed Problem 3 Part 1")
+    # validate_predicted_measurements()
+    # validate_compute_innovations()
+    # validate_resample()

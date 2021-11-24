@@ -59,8 +59,11 @@ class ParticleFilter(object):
         # TODO: Update self.xs.
         # Hint: Call self.transition_model().
         # Hint: You may find np.random.multivariate_normal useful.
-
-
+        epsilon = np.random.multivariate_normal(mean=np.zeros_like(u),
+                                                cov=self.R * dt,
+                                                size=self.M)
+        us = np.array([u,] * self.M) + epsilon
+        self.xs = self.transition_model(us, dt)
         ########## Code ends here ##########
 
     def transition_model(self, us, dt):
@@ -168,7 +171,7 @@ class MonteCarloLocalization(ParticleFilter):
         """
 
         ########## Code starts here ##########
-        # TODO: Compute g.
+        # DONE: Compute g.
         # Hint: We don't need Jacobians for particle filtering.
         # Hint: A simple solution can be using a for loop for each partical
         #       and a call to tb.compute_dynamics
@@ -184,7 +187,36 @@ class MonteCarloLocalization(ParticleFilter):
 
 
         ########## Code ends here ##########
+        def regular_update(us, dt):
+            x_prev, y_prev, th_prev = self.xs[:, 0], self.xs[:, 1], self.xs[:, 2]
+            V, om = us[:, 0], us[:, 1]
 
+            th_now = th_prev + om * dt
+            sin_th_prev, sin_th_now = np.sin(th_prev), np.sin(th_now)
+            cos_th_prev, cos_th_now = np.cos(th_prev), np.cos(th_now)
+            V_over_om = V / np.maximum(np.abs(om), EPSILON_OMEGA) * np.sign(om)
+
+            x_now = x_prev + V_over_om * (+sin_th_now - sin_th_prev)
+            y_now = y_prev + V_over_om * (-cos_th_now + cos_th_prev)
+
+            return np.stack([x_now, y_now, th_now], axis=-1)
+
+        def small_om_update(us, dt):
+            mid_sin = (np.sin(th_prev) + np.sin(th_now)) / 2.
+            mid_cos = (np.cos(th_prev) + np.cos(th_now)) / 2.
+
+            x_now = x_prev + V * mid_cos * dt
+            y_now = y_prev + V * mid_sin * dt
+
+            return np.stack([x_now, y_now, th_now], axis=-1)
+
+        x_prev, y_prev, th_prev = self.xs[:, 0], self.xs[:, 1], self.xs[:, 2]
+        V, om = us[:, 0], us[:, 1]
+        th_now = th_prev + om * dt
+
+        g = np.where(np.expand_dims(np.abs(us[:, 1]), axis=1) < EPSILON_OMEGA,
+                     small_om_update(us, dt),
+                     regular_update(us, dt))
         return g
 
     def measurement_update(self, z_raw, Q_raw):
