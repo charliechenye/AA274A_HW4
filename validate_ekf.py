@@ -324,7 +324,8 @@ if __name__ == '__main__':
     print("Passed Problem 1 Question 3")
     validate_localization_compute_predicted_measurements()
     print("Passed Problem 1 Question 4")
-    # validate_localization_compute_innovations()
+    validate_localization_compute_innovations()
+    print("Passed Problem 1 Question 5")
 
     ### PROBLEM 2
 
