@@ -247,7 +247,7 @@ class MonteCarloLocalization(ParticleFilter):
         #       useful.
         # Hint: You'll need to call self.measurement_model()
         vs, Q = self. measurement_model(z_raw, Q_raw)
-        ws = scipy.stats.multivariate_normal(vs, mean=None, cov=Q)
+        ws = scipy.stats.multivariate_normal.pdf(vs, mean=None, cov=Q)
         ########## Code ends here ##########
 
         self.resample(xs, ws)
