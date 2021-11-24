@@ -254,7 +254,7 @@ def validate_mc_localization(show_plot=True):
 
 if __name__ == '__main__':
     ### PROBLEM 3
-    # validate_mc_localization()
+    validate_mc_localization()
 
     ## Subcomponent validation
     validate_transition_model()
@@ -263,4 +263,5 @@ if __name__ == '__main__':
     print("Passed Problem 3 Part 2 - 1 Predicted Measurement")
     validate_compute_innovations()
     print("Passed Problem 3 Part 2 - 2 Compute Innovations")
-    # validate_resample()
+    validate_resample()
+    print("Passed Problem 4 - Resample")
