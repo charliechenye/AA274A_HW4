@@ -1,1 +1,4 @@
 *.pyc
+submission/HW4/*
+.idea/*
+hw4.zip
