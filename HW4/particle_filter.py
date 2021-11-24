@@ -354,8 +354,14 @@ class MonteCarloLocalization(ParticleFilter):
         x_camera = x_camera_base + np.cos(th_base) * x_camera_base - np.sin(th_base) * y_camera_base    # (M, 1)
         y_camera = y_camera_base + np.sin(th_base) * x_camera_base + np.cos(th_base) * y_camera_base    # (M, 1)
 
-        alpha_c = (alpha - th_base - th_camera_base + np.pi) % (2 * np.pi) - np.pi  # (M, J)
+        alpha_c = alpha - th_base - th_camera_base  # (M, J)
         r_c = r - x_camera * np.cos(alpha) - y_camera * np.sin(alpha)   # (M, J)
+
+        # Normalize line parameters
+        alpha_c = np.where(r_c < 0, alpha_c + np.pi, alpha_c)
+        r_c = np.abs(r_c)
+
+        alpha_c = (alpha_c + np.pi) % (2 * np.pi) - np.pi
 
         hs = np.hstack([alpha_c, r_c])  # (M, 2J)
         hs = np.reshape(hs, (self.M, 2, -1))    # (M, 2, J)
