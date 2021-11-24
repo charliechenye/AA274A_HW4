@@ -300,7 +300,7 @@ class MonteCarloLocalization(ParticleFilter):
             return diff
 
         ########## Code starts here ##########
-        # TODO: Compute vs (with shape [M x I x 2]).
+        # DONE: Compute vs (with shape [M x I x 2]).
         # Hint: Simple solutions: Using for loop, for each particle, for each 
         #       observed line, find the most likely map entry (the entry with 
         #       least Mahalanobis distance).
@@ -313,10 +313,23 @@ class MonteCarloLocalization(ParticleFilter):
         #       Overall, that's 100x!
         # Hint: For the faster solution, you might find np.expand_dims(), 
         #       np.linalg.solve(), np.meshgrid() useful.
-        I = Q_raw.shape[0]
-        J = self.map_lines.shape[1]
+        hs = self.compute_predicted_measurements()  # (M, 2, J)
+        hs = np.transpose(hs, (0, 2, 1))    # (M, J, 2)
+        hs = np.expand_dims(hs, 1)  # (M, 1, J, 2)
 
+        z_raw = z_raw.T # (I, 2)
+        z_raw = np.expand_dims(z_raw, 0)
+        z_raw = np.expand_dims(z_raw, 2)    # (1, I, 1, 2)
 
+        vs = z_raw - hs     # (M, I, J, 2)
+        vs_q = np.matmul(vs, np.linalg.inv(Q_raw))  # (M, I, J, 2)
+        d_sq = np.sum(vs_q * vs, axis=-1)   # (M, I, J)
+
+        min_index = np.argmin(d_sq, axis=-1)    # (M, I)
+        min_index = np.expand_dims(min_index, -1)   # (M, I, 1)
+        min_index = np.expand_dims(min_index, -1)   # (M, I, 1, 1)
+
+        vs = np.squeeze(np.take_along_axis(vs, min_index, axis=2))  # (M, I, 2)
         ########## Code ends here ##########
 
         # Reshape [M x I x 2] array to [M x 2I]
@@ -360,7 +373,6 @@ class MonteCarloLocalization(ParticleFilter):
         # Normalize line parameters
         alpha_c = np.where(r_c < 0, alpha_c + np.pi, alpha_c)
         r_c = np.abs(r_c)
-
         alpha_c = (alpha_c + np.pi) % (2 * np.pi) - np.pi
 
         hs = np.hstack([alpha_c, r_c])  # (M, 2J)

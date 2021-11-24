@@ -261,5 +261,6 @@ if __name__ == '__main__':
     print("Passed Problem 3 Part 1")
     validate_predicted_measurements()
     print("Passed Problem 3 Part 2 - 1 Predicted Measurement")
-    # validate_compute_innovations()
+    validate_compute_innovations()
+    print("Passed Problem 3 Part 2 - 2 Compute Innovations")
     # validate_resample()
