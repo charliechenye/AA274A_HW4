@@ -92,7 +92,7 @@ def transform_line_to_scanner_frame(line, x, tf_base_to_camera, compute_jacobian
     alpha, r = line
 
     ########## Code starts here ##########
-    # TODO: Compute h, Hx
+    # DONE: Compute h, Hx
     # HINT: Calculate the pose of the camera in the world frame (x_cam, y_cam, th_cam), a rotation matrix may be useful.
     # HINT: To compute line parameters in the camera frame h = (alpha_in_cam, r_in_cam), 
     #       draw a diagram with a line parameterized by (alpha,r) in the world frame and 

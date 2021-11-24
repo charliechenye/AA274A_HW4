@@ -328,4 +328,4 @@ if __name__ == '__main__':
     print("Passed Problem 1 Question 6")
     ### PROBLEM 2
 
-    # validate_ekf_slam()
+    validate_ekf_slam()
