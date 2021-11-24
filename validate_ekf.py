@@ -313,8 +313,6 @@ def validate_ekf_slam():
 
 if __name__ == '__main__':
     ### PROBLEM 1
-    # validate_ekf_transition_update()
-    # validate_ekf_localization()
 
     ## Subcomponent validation
     print("Testing Subproblems")
@@ -326,7 +324,8 @@ if __name__ == '__main__':
     print("Passed Problem 1 Question 4")
     validate_localization_compute_innovations()
     print("Passed Problem 1 Question 5")
-
+    validate_ekf_localization()
+    print("Passed Problem 1 Question 6")
     ### PROBLEM 2
 
     # validate_ekf_slam()
