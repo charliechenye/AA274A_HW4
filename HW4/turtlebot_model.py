@@ -32,12 +32,15 @@ def compute_dynamics(xvec, u, dt, compute_jacobians=True):
         mid_cos = (np.cos(th_prev) + np.cos(th_now)) / 2.
         x_now = x_prev + mid_cos * V * dt
         y_now = y_prev + mid_sin * V * dt
-        Gx = np.array([[1, 0, -V * mid_sin * dt],
-                       [0, 1,  V * mid_cos * dt],
-                       [0, 0, 1], ])
-        Gu = np.array([[mid_cos * dt, -V / 2. * np.sin(th_now) * dt * dt],
-                       [mid_sin * dt,  V / 2. * np.cos(th_now) * dt * dt],
-                       [0, dt], ])
+        if compute_jacobians:
+            Gx = np.array([[1, 0, -V * mid_sin * dt],
+                           [0, 1,  V * mid_cos * dt],
+                           [0, 0, 1], ])
+            Gu = np.array([[mid_cos * dt, -V / 2. * np.sin(th_now) * dt * dt],
+                           [mid_sin * dt,  V / 2. * np.cos(th_now) * dt * dt],
+                           [0, dt], ])
+        else:
+            Gx = Gu = None
     else:
         # omega is large
         sin_th_now = np.sin(th_now)
@@ -51,14 +54,17 @@ def compute_dynamics(xvec, u, dt, compute_jacobians=True):
         x_now = x_prev + V_over_om * (+sin_th_now - sin_th_prev)
         y_now = y_prev + V_over_om * (-cos_th_now + cos_th_prev)
 
-        Gx = np.array([[1, 0, V_over_om * (cos_th_now - cos_th_prev)],
-                       [0, 1, V_over_om * (sin_th_now - sin_th_prev)],
-                       [0, 0, 1], ])
-        Gu = np.array([[om_inv * (+sin_th_now - sin_th_prev),
-                            V_over_om * cos_th_now * dt - V_over_om * om_inv * (+sin_th_now - sin_th_prev)],
-                       [om_inv * (-cos_th_now + cos_th_prev),
-                            V_over_om * sin_th_now * dt - V_over_om * om_inv * (-cos_th_now + cos_th_prev)],
-                       [0, dt], ])
+        if compute_jacobians:
+            Gx = np.array([[1, 0, V_over_om * (cos_th_now - cos_th_prev)],
+                           [0, 1, V_over_om * (sin_th_now - sin_th_prev)],
+                           [0, 0, 1], ])
+            Gu = np.array([[om_inv * (+sin_th_now - sin_th_prev),
+                                V_over_om * cos_th_now * dt - V_over_om * om_inv * (+sin_th_now - sin_th_prev)],
+                           [om_inv * (-cos_th_now + cos_th_prev),
+                                V_over_om * sin_th_now * dt - V_over_om * om_inv * (-cos_th_now + cos_th_prev)],
+                           [0, dt], ])
+        else:
+            Gx = Gu = None
 
     g = np.array([x_now, y_now, th_now])
     ########## Code ends here ##########
@@ -93,8 +99,27 @@ def transform_line_to_scanner_frame(line, x, tf_base_to_camera, compute_jacobian
     #       a camera frame with origin at x_cam, y_cam rotated by th_cam wrt to the world frame
     # HINT: What is the projection of the camera location (x_cam, y_cam) on the line r? 
     # HINT: To find Hx, write h in terms of the pose of the base in world frame (x_base, y_base, th_base)
+    x_world, y_world, th_world  = x
+    rotation_matrix = np.array([[np.cos(th_world), -np.sin(th_world), 0],
+                                [np.sin(th_world), np.cos(th_world), 0],
+                                [0, 0, 1]])
 
+    # pose of camera in world frame
+    x_cam, y_cam, th_cam = x + np.dot(rotation_matrix, tf_base_to_camera)
+    # line parameter in camera frame, new alpha and new r
+    h = np.array([alpha - th_cam,
+                  r - x_cam * np.cos(alpha) - y_cam * np.sin(alpha)])
 
+    if compute_jacobian:
+        x_base_cam, y_base_cam, _ = tf_base_to_camera
+        # recall that x_cam = x_x + np.cos(th_world) * x_base_cam - np.sin(th_world) * y_base_cam
+        # recall that y_cam = x_y + np.sin(th_world) * x_base_cam + np.cos(th_world) * y_base_cam
+        Hx = np.array([[0, 0, -1],
+                       [-np.cos(alpha), -np.sin(alpha),
+                        -np.cos(alpha) * (-np.sin(th_world) * x_base_cam - np.cos(th_world) * y_base_cam)
+                        -np.sin(alpha) * (+np.cos(th_world) * x_base_cam - np.sin(th_world) * y_base_cam)], ])
+    else:
+        Hx = None
     ########## Code ends here ##########
 
     if not compute_jacobian:

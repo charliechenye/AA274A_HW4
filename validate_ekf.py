@@ -322,8 +322,8 @@ if __name__ == '__main__':
     print("Passed Problem 1 Question 2")
     validate_ekf_transition_update()
     print("Passed Problem 1 Question 3")
-
-    # validate_localization_compute_predicted_measurements()
+    validate_localization_compute_predicted_measurements()
+    print("Passed Problem 1 Question 4")
     # validate_localization_compute_innovations()
 
     ### PROBLEM 2
