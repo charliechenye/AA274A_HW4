@@ -318,27 +318,35 @@ class MonteCarloLocalization(ParticleFilter):
         #       Overall, that's 100x!
         # Hint: For the faster solution, you might find np.expand_dims(), 
         #       np.linalg.solve(), np.meshgrid() useful.
-        hs = self.compute_predicted_measurements()  # (M, 2, J)
-        hs = np.transpose(hs, (0, 2, 1))    # (M, J, 2)
-        hs = np.expand_dims(hs, 1)  # (M, 1, J, 2)
+        J = self.map_lines.shape[1]
+        I = z_raw.shape[1]
 
-        z_raw = z_raw.T # (I, 2)
-        z_raw = np.expand_dims(z_raw, 0)
-        z_raw = np.expand_dims(z_raw, 2)    # (1, I, 1, 2)
+        hs = self.compute_predicted_measurements().transpose((0, 2, 1))  # (M, J, 2)
 
-        vs = z_raw - hs     # (M, I, J, 2)
-        vs_q = np.matmul(vs, np.linalg.inv(Q_raw))  # (M, I, J, 2)
-        d_sq = np.sum(vs_q * vs, axis=-1)   # (M, I, J)
+        z_matrix = z_raw.T[None, None, :, :]  # (1, 1, I, 2)
+        h_matrix = hs[:, :, None, :]  # (M, J, 1, 2)
 
-        min_index = np.argmin(d_sq, axis=-1)    # (M, I)
-        min_index = np.expand_dims(min_index, -1)   # (M, I, 1)
-        min_index = np.expand_dims(min_index, -1)   # (M, I, 1, 1)
+        # Vectorized angle_diff
+        z_alpha = z_matrix[..., 0]   # (M, J, I)
+        h_alpha = h_matrix[..., 0]   # (M, J, I)
+        v_alpha = (z_alpha - h_alpha + np.pi) % (2 * np.pi) - np.pi   # (M, J, I)
 
-        vs = np.squeeze(np.take_along_axis(vs, min_index, axis=2))  # (M, I, 2)
+        v_r = z_matrix[..., 1] - h_matrix[..., 1]   # (M, J, I)
+        v_tmp = np.stack((v_alpha, v_r), axis=3)   # (M, J, I, 2)
+
+        v = np.expand_dims(v_tmp, -1)  # (M, J, I, 2, 1)
+        Q_inv = np.linalg.inv(Q_raw)[None, None, :, :, :]  # (1, 1, I, 2, 2)
+
+        d_matrix = np.matmul(np.matmul(v.transpose((0, 1, 2, 4, 3)), Q_inv), v)  # (M, J, I, 1, 1)
+        d_matrix = d_matrix.reshape((self.M, J, I))  # (M, J, I)
+
+        d_argmin = np.argmin(d_matrix, axis=1)[:, None, :, None]  # (M, 1,) I, 1)
+        vs = np.take_along_axis(v_tmp, d_argmin, axis=1)  # (M, 1, I, 2)
+        vs = vs.reshape((self.M, I, 2))  # (M, I, 2)
         ########## Code ends here ##########
 
         # Reshape [M x I x 2] array to [M x 2I]
-        return vs.reshape((self.M,-1))  # [M x 2I]
+        return vs.reshape((self.M, -1))  # [M x 2I]
 
     def compute_predicted_measurements(self):
         """
