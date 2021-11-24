@@ -295,12 +295,15 @@ class EkfSlam(Ekf):
         Gx = np.eye(self.x.size)
         Gu = np.zeros((self.x.size, 2))
 
+        x_size = 3
         ########## Code starts here ##########
         # TODO: Compute g, Gx, Gu.
         # HINT: This should be very similar to EkfLocalization.transition_model() and take 1-5 lines of code.
         # HINT: Call tb.compute_dynamics() with the correct elements of self.x
-
-
+        state_g, state_Gx, state_Gu = tb.compute_dynamics(g[:x_size], u, dt)
+        g[:x_size] = state_g
+        Gx[:x_size, :x_size] = state_Gx
+        Gu[:x_size, :] = state_Gu
         ########## Code ends here ##########
 
         return g, Gx, Gu
