@@ -56,7 +56,7 @@ class ParticleFilter(object):
             None - internal belief state (self.xs) should be updated.
         """
         ########## Code starts here ##########
-        # TODO: Update self.xs.
+        # DONE: Update self.xs.
         # Hint: Call self.transition_model().
         # Hint: You may find np.random.multivariate_normal useful.
         epsilon = np.random.multivariate_normal(mean=np.zeros_like(u),
@@ -98,6 +98,7 @@ class ParticleFilter(object):
     def resample(self, xs, ws):
         """
         Resamples the particles according to the updated particle weights.
+        Low variance re-sample strategy
 
         Inputs:
             xs: np.array[M,3] - matrix of particle states.
@@ -109,7 +110,7 @@ class ParticleFilter(object):
         r = np.random.rand() / self.M
 
         ########## Code starts here ##########
-        # TODO: Update self.xs, self.ws.
+        # DONE: Update self.xs, self.ws.
         # Note: Assign the weights in self.ws to the corresponding weights in ws
         #       when resampling xs instead of resetting them to a uniform
         #       distribution. This allows us to keep track of the most likely
@@ -117,8 +118,12 @@ class ParticleFilter(object):
         # Hint: To maximize speed, try to implement the resampling algorithm
         #       without for loops. You may find np.linspace(), np.cumsum(), and
         #       np.searchsorted() useful. This results in a ~10x speedup.
-
-
+        cum_ws = np.cumsum(ws)
+        m = np.linspace(start=0, stop=self.M, num=self.M, endpoint=False) / float(self.M)
+        selected_idx = np.searchsorted(cum_ws,
+                                   cum_ws[-1] * (r + m))
+        self.xs = xs[selected_idx, :]
+        self.ws = ws[selected_idx]
         ########## Code ends here ##########
 
     def measurement_model(self, z_raw, Q_raw):
@@ -233,10 +238,10 @@ class MonteCarloLocalization(ParticleFilter):
             None - internal belief state (self.x, self.ws) is updated in self.resample().
         """
         xs = np.copy(self.xs)
-        ws = np.zeros_like(self.ws)
+        # ws = np.zeros_like(self.ws)
 
         ########## Code starts here ##########
-        # TODO: Compute new particles (xs, ws) with updated measurement weights.
+        # DONE: Compute new particles (xs, ws) with updated measurement weights.
         # Hint: To maximize speed, implement this without looping over the
         #       particles. You may find scipy.stats.multivariate_normal.pdf()
         #       useful.
