@@ -351,8 +351,8 @@ class MonteCarloLocalization(ParticleFilter):
                                   np.expand_dims(self.xs[:, 2], -1)     # (M, 1)
         x_camera_base, y_camera_base, th_camera_base = self.tf_base_to_camera   # float
         # Rotation matrix to get camera coordinates in
-        x_camera = x_camera_base + np.cos(th_base) * x_camera_base - np.sin(th_base) * y_camera_base    # (M, 1)
-        y_camera = y_camera_base + np.sin(th_base) * x_camera_base + np.cos(th_base) * y_camera_base    # (M, 1)
+        x_camera = x_base + np.cos(th_base) * x_camera_base - np.sin(th_base) * y_camera_base    # (M, 1)
+        y_camera = y_base + np.sin(th_base) * x_camera_base + np.cos(th_base) * y_camera_base    # (M, 1)
 
         alpha_c = alpha - th_base - th_camera_base  # (M, J)
         r_c = r - x_camera * np.cos(alpha) - y_camera * np.sin(alpha)   # (M, J)

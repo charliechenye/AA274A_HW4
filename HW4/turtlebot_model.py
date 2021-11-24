@@ -99,7 +99,7 @@ def transform_line_to_scanner_frame(line, x, tf_base_to_camera, compute_jacobian
     #       a camera frame with origin at x_cam, y_cam rotated by th_cam wrt to the world frame
     # HINT: What is the projection of the camera location (x_cam, y_cam) on the line r? 
     # HINT: To find Hx, write h in terms of the pose of the base in world frame (x_base, y_base, th_base)
-    x_world, y_world, th_world  = x
+    _, _, th_world  = x
     rotation_matrix = np.array([[np.cos(th_world), -np.sin(th_world), 0],
                                 [np.sin(th_world), np.cos(th_world), 0],
                                 [0, 0, 1]])
