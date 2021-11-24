@@ -16,13 +16,51 @@ def compute_dynamics(xvec, u, dt, compute_jacobians=True):
         Gu: np.array[3,2] - Jacobian of g with respect to u.
     """
     ########## Code starts here ##########
-    # TODO: Compute g, Gx, Gu
+    # DONE: Compute g, Gx, Gu
     # HINT: To compute the new state g, you will need to integrate the dynamics of x, y, theta
     # HINT: Since theta is changing with time, try integrating x, y wrt d(theta) instead of dt by introducing om
     # HINT: When abs(om) < EPSILON_OMEGA, assume that the theta stays approximately constant ONLY for calculating the next x, y
     #       New theta should not be equal to theta. Jacobian with respect to om is not 0.
+    V, om = u
+    x_prev, y_prev, th_prev = xvec
+    th_now = th_prev + om * dt
 
+    if abs(om) < EPSILON_OMEGA:
+        # omega is close to 0
+        # uses mid point rule to compute dynamic update
+        mid_sin = (np.sin(th_prev) + np.sin(th_now)) / 2.
+        mid_cos = (np.cos(th_prev) + np.cos(th_now)) / 2.
+        x_now = x_prev + mid_cos * V * dt
+        y_now = y_prev + mid_sin * V * dt
+        Gx = np.array([[1, 0, -V * mid_sin * dt],
+                       [0, 1,  V * mid_cos * dt],
+                       [0, 0, 1], ])
+        Gu = np.array([[mid_cos * dt, -V / 2. * np.sin(th_now) * dt * dt],
+                       [mid_sin * dt,  V / 2. * np.cos(th_now) * dt * dt],
+                       [0, dt], ])
+    else:
+        # omega is large
+        sin_th_now = np.sin(th_now)
+        sin_th_prev = np.sin(th_prev)
+        cos_th_now = np.cos(th_now)
+        cos_th_prev = np.cos(th_prev)
 
+        om_inv = 1. / om
+        V_over_om = V / om
+
+        x_now = x_prev + V_over_om * (+sin_th_now - sin_th_prev)
+        y_now = y_prev + V_over_om * (-cos_th_now + cos_th_prev)
+
+        Gx = np.array([[1, 0, V_over_om * (cos_th_now - cos_th_prev)],
+                       [0, 1, V_over_om * (sin_th_now - sin_th_prev)],
+                       [0, 0, 1], ])
+        Gu = np.array([[om_inv * (+sin_th_now - sin_th_prev),
+                            V_over_om * cos_th_now * dt - V_over_om * om_inv * (+sin_th_now - sin_th_prev)],
+                       [om_inv * (-cos_th_now + cos_th_prev),
+                            V_over_om * sin_th_now * dt - V_over_om * om_inv * (-cos_th_now + cos_th_prev)],
+                       [0, dt], ])
+
+    g = np.array([x_now, y_now, th_now])
     ########## Code ends here ##########
 
     if not compute_jacobians:

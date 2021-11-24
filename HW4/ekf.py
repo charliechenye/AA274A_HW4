@@ -40,8 +40,9 @@ class Ekf(object):
         g, Gx, Gu = self.transition_model(u, dt)
 
         ########## Code starts here ##########
-        # TODO: Update self.x, self.Sigma.
-
+        # DONE: Update self.x, self.Sigma.
+        self.x = g
+        self.Sigma = np.dot(Gx, np.dot(self.Sigma, Gx.T)) + dt * np.dot(Gu, np.dot(self.R, Gu.T))
 
         ########## Code ends here ##########
 
