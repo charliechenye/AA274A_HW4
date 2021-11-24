@@ -107,8 +107,13 @@ def transform_line_to_scanner_frame(line, x, tf_base_to_camera, compute_jacobian
     # pose of camera in world frame
     x_cam, y_cam, th_cam = x + np.dot(rotation_matrix, tf_base_to_camera)
     # line parameter in camera frame, new alpha and new r
-    h = np.array([(alpha - th_cam + np.pi) % (2 * np.pi) - np.pi,
-                  r - x_cam * np.cos(alpha) - y_cam * np.sin(alpha)])
+    r_c = r - x_cam * np.cos(alpha) - y_cam * np.sin(alpha)
+    if r_c > 0:
+        h = np.array([(alpha - th_cam + np.pi) % (2 * np.pi) - np.pi,
+                      r - x_cam * np.cos(alpha) - y_cam * np.sin(alpha)])
+    else:
+        h = np.array([(alpha - th_cam + 2 * np.pi) % (2 * np.pi) - np.pi,
+                      r - x_cam * np.cos(alpha) - y_cam * np.sin(alpha)])
 
     if compute_jacobian:
         x_base_cam, y_base_cam, _ = tf_base_to_camera
